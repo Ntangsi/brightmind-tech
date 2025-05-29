@@ -2,8 +2,8 @@
     agent any
     
     tools {
-        jdk 'JDK-17'  // Change to JDK-21 if you're using Java 21
-        maven 'Maven-3.9.9'
+        jdk 'JDK-21'  // Change to JDK-21 if you're using Java 21
+        maven 'Maven 3.9.9'
     }
     
     stages {
