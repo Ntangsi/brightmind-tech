@@ -38,7 +38,7 @@
         stage('Deploy to Tomcat') {
             steps {
                 echo 'Deploying to Tomcat...'
-                deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', 
+                deploy adapters: [tomcat9(credentialsId: 'TomcatCreds', 
                                          path: '', 
                                          url: 'http://localhost:8080/')], 
                        contextPath: '/brightmind-tech', 
