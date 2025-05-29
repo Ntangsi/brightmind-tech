@@ -13,6 +13,6 @@
     </properties>
 
     <build>
-        <finalName>Brightmind-tech</finalName>
+        <finalName>brightmind-tech</finalName>
     </build>
 </project>
