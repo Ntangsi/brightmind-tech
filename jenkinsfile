@@ -41,7 +41,7 @@ pipeline {
                                 url: 'http://localhost:8084' 
                             ) 
                         ],  
-                        contextPath: '/brightmind-tech-prod', 
+                        contextPath: '/brightmind-tech', 
                         war: warFile 
                     } else { 
                         error "ERROR: WAR file ${warFile} not found! Production deployment 
