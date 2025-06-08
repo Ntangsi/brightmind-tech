@@ -30,7 +30,7 @@ lastSuccessful())
                                 url: 'http://localhost:8082' 
                             ) 
                         ],  
-                        contextPath: '/brightmind-tech-qa', 
+                        contextPath: '/brightmind-tech', 
                         war: warFile 
                     } else { 
                         error "WAR file not found. Qa deployment failed." 
