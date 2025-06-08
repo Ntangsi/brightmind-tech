@@ -19,7 +19,7 @@ pipeline {
                 echo 'Copying WAR from artifact-builder...'
                 copyArtifacts(
                     projectName: 'artifact-builder',
-                    selector: [$class: 'LastSuccessfulBuild'],
+                    selector: lastSuccessful(),
                     filter: 'target/brightmind-tech.war'
                 )
             }
