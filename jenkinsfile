@@ -1,54 +1,62 @@
-pipeline { 
-    agent any 
-    tools { 
-        jdk 'JDK-21' 
-        maven 'Maven 3.9.9' 
-    } 
-    stages { 
-        stage('Checkout Qa Branch') { 
-            steps { 
-                echo 'Checking out Qa branch...' 
-                git branch: 'Qa', url: 'https://github.com/Ntangsi/brightmind-tech.git' 
-            } 
-        } 
-        stage('Copy Artifact from Dev') { 
-            steps { 
-                echo 'Copying artifact from Dev environment...' 
-                copyArtifacts(projectName: 'Multibranch-Pipeline/job/Dev', selector: 
-lastSuccessful()) 
-            } 
-        } 
-        stage('Deploy to Tomcat (Qa)') { 
-            steps { 
-                echo 'Deploying to Qa Tomcat...' 
-                script { 
-                    def warFile = "target/brightmind-tech.war" 
-                    if (fileExists(warFile)) { 
-                        deploy adapters: [ 
-                            tomcat9( 
-                                credentialsId: 'TomcatCreds', 
-                                url: 'http://localhost:8082' 
-                            ) 
-                        ],  
-                        contextPath: '/brightmind-tech', 
-                        war: warFile 
-                    } else { 
-                        error "WAR file not found. Qa deployment failed." 
-                    } 
-                } 
-            } 
-        } 
-    } 
-    post { 
-        always { 
-            echo 'Cleaning up workspace...' 
-            deleteDir() 
-        } 
-        success { 
-            echo 'Qa Pipeline completed successfully!' 
-        } 
-        failure { 
-            echo 'Qa Pipeline failed. Check build logs for details.' 
-        } 
-    } 
-} 
+pipeline {
+    agent any
+
+    tools {
+        jdk 'JDK-21'
+        maven 'Maven 3.9.9'
+    }
+
+    stages {
+        stage('Checkout Qa Branch') {
+            steps {
+                echo 'Checking out Qa branch...'
+                git branch: 'Qa', url: 'https://github.com/Ntangsi/brightmind-tech.git'
+            }
+        }
+
+        stage('Copy WAR from artifact-builder') {
+            steps {
+                echo 'Copying WAR from artifact-builder...'
+                copyArtifacts(
+                    projectName: 'artifact-builder',
+                    selector: [$class: 'LastSuccessfulBuild'],
+                    filter: 'target/brightmind-tech.war'
+                )
+            }
+        }
+
+        stage('Deploy to Tomcat (Qa)') {
+            steps {
+                echo 'Deploying to Qa Tomcat...'
+                script {
+                    def warFile = "target/brightmind-tech.war"
+                    if (fileExists(warFile)) {
+                        deploy adapters: [
+                            tomcat9(
+                                credentialsId: 'TomcatCreds',
+                                url: 'http://localhost:8082'
+                            )
+                        ],
+                        contextPath: '/brightmind-tech',
+                        war: warFile
+                    } else {
+                        error "WAR file not found. Qa deployment failed."
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            deleteDir()
+        }
+        success {
+            echo 'Qa Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Qa Pipeline failed. Check build logs for details.'
+        }
+    }
+}
