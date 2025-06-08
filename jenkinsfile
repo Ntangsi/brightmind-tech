@@ -5,10 +5,10 @@ pipeline {
         maven 'Maven 3.9.9' 
     } 
     stages { 
-        stage('Checkout QA Branch') { 
+        stage('Checkout Qa Branch') { 
             steps { 
-                echo 'Checking out QA branch...' 
-                git branch: 'QA', url: 'https://github.com/Ntangsi/brightmind-tech.git' 
+                echo 'Checking out Qa branch...' 
+                git branch: 'Qa', url: 'https://github.com/Ntangsi/brightmind-tech.git' 
             } 
         } 
         stage('Copy Artifact from Dev') { 
@@ -18,9 +18,9 @@ pipeline {
 lastSuccessful()) 
             } 
         } 
-        stage('Deploy to Tomcat (QA)') { 
+        stage('Deploy to Tomcat (Qa)') { 
             steps { 
-                echo 'Deploying to QA Tomcat...' 
+                echo 'Deploying to Qa Tomcat...' 
                 script { 
                     def warFile = "target/brightmind-tech.war" 
                     if (fileExists(warFile)) { 
@@ -33,7 +33,7 @@ lastSuccessful())
                         contextPath: '/brightmind-tech-qa', 
                         war: warFile 
                     } else { 
-                        error "WAR file not found. QA deployment failed." 
+                        error "WAR file not found. Qa deployment failed." 
                     } 
                 } 
             } 
@@ -45,10 +45,10 @@ lastSuccessful())
             deleteDir() 
         } 
         success { 
-            echo 'QA Pipeline completed successfully!' 
+            echo 'Qa Pipeline completed successfully!' 
         } 
         failure { 
-            echo 'QA Pipeline failed. Check build logs for details.' 
+            echo 'Qa Pipeline failed. Check build logs for details.' 
         } 
     } 
 } 
