@@ -1,40 +1,71 @@
-pipeline {
-    agent any
-
-    tools {
-        jdk 'JDK-21'
-        maven 'Maven 3.9.9'
-    }
-
-    stages {
-        stage('Checkout Dev Branch') {
-            steps {
-                echo 'Checking out Dev branch...'
-                git branch: 'Dev', url: 'https://github.com/Ntangsi/brightmind-tech.git'
-            }
-        }
-
-        stage('Build WAR') {
-            steps {
-                echo 'Building WAR file...'
-                bat 'mvn clean package'
-            }
-        }
-
-        stage('Archive Artifact') {
-            steps {
-                echo 'Archiving WAR file...'
-                archiveArtifacts artifacts: 'target/brightmind-tech.war'
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Build complete and WAR file archived.'
-        }
-        failure {
-            echo 'Build failed.'
-        }
-    }
-}
+pipeline { 
+    agent any 
+    tools { 
+        jdk 'JDK-21' 
+        maven 'Maven 3.9.9' 
+    } 
+    stages { 
+        stage('Checkout Source') { 
+            steps { 
+                echo 'Checking out source code...' 
+                git branch: 'Dev', url: 'https://github.com/Ntangsi/brightmind-tech.git' 
+            } 
+        } 
+        stage('Build') { 
+            steps { 
+                echo 'Compiling the application...' 
+                bat 'mvn clean compile' 
+            } 
+        } 
+        stage('Test') { 
+            steps { 
+                echo 'Running tests...' 
+                bat 'mvn test' 
+            } 
+        } 
+        stage('Package') { 
+            steps { 
+                echo 'Packaging the application...' 
+                bat 'mvn package' 
+            } 
+        } 
+        stage('Archive Artifact') { 
+            steps { 
+                echo 'Archiving artifact for downstream use...' 
+                archiveArtifacts artifacts: 'target/*.war', fingerprint: true 
+            } 
+        } 
+        stage('Deploy to Tomcat') { 
+            steps { 
+                echo 'Deploying to Tomcat...' 
+                script { 
+                    def warFile = "target/brightmind-tech.war" 
+                    if (fileExists(warFile)) { 
+                        deploy adapters: [ 
+                            tomcat9( 
+                                credentialsId: 'TomcatCreds', 
+                                url: 'http://localhost:8081' 
+                            ) 
+                        ],  
+                        contextPath: '/brightmind-tech', 
+                        war: warFile 
+                    } else { 
+                        error "ERROR: WAR file ${warFile} not found!" 
+                    } 
+                } 
+            } 
+        } 
+    } 
+    post { 
+        always { 
+            echo 'Cleaning up workspace...' 
+            deleteDir() 
+        } 
+        success { 
+            echo 'Pipeline completed successfully!' 
+        } 
+        failure { 
+            echo 'Pipeline failed. Check build logs for details.' 
+        } 
+    } 
+} 
