@@ -1,62 +1,54 @@
- pipeline {
-    agent any
-    
-    tools {
-        jdk 'JDK-21'  // Change to JDK-21 if you're using Java 21
-        maven 'Maven 3.9.9'
-    }
-    
-    stages {
-        stage('Checkout') {
-            steps {
-                echo 'Checking out source code...'
-                checkout scm
-            }
-        }
-        
-        stage('Build') {
-            steps {
-                echo 'Building the application...'
-                bat 'mvn clean compile'  // Use 'sh' instead of 'bat' on Linux/Mac
-            }
-        }
-        
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-                bat 'mvn test'  // Use 'sh' instead of 'bat' on Linux/Mac
-            }
-        }
-        
-        stage('Package') {
-            steps {
-                echo 'Packaging the application...'
-                bat 'mvn package'  // Use 'sh' instead of 'bat' on Linux/Mac
-            }
-        }
-        
-        stage('Deploy to Tomcat') {
-            steps {
-                echo 'Deploying to Tomcat...'
-                deploy adapters: [tomcat9(credentialsId: 'TomcatCreds', 
-                                         path: '', 
-                                         url: 'http://localhost:8080/')], 
-                       contextPath: '/brightmind-tech', 
-                       war: 'target/*.war'
-            }
-        }
-    }
-    
-    post {
-        always {
-            echo 'Cleaning up workspace...'
-            cleanWs()
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Check the logs for details.'
-        }
-    }
- }
+pipeline { 
+    agent any 
+    tools { 
+        jdk 'JDK-21' 
+        maven 'Maven 3.9.9' 
+    } 
+    stages { 
+        stage('Checkout QA Branch') { 
+            steps { 
+                echo 'Checking out QA branch...' 
+                git branch: 'QA', url: 'https://github.com/Ntangsi/brightmind-tech.git' 
+            } 
+        } 
+        stage('Copy Artifact from Dev') { 
+            steps { 
+                echo 'Copying artifact from Dev environment...' 
+                copyArtifacts(projectName: 'brightmind-tech/Dev', selector: 
+lastSuccessful()) 
+            } 
+        } 
+        stage('Deploy to Tomcat (QA)') { 
+            steps { 
+                echo 'Deploying to QA Tomcat...' 
+                script { 
+                    def warFile = "target/brightmind-tech.war" 
+                    if (fileExists(warFile)) { 
+                        deploy adapters: [ 
+                            tomcat9( 
+                                credentialsId: 'TomcatCreds', 
+                                url: 'http://localhost:8082' 
+                            ) 
+                        ],  
+                        contextPath: '/brightmind-tech-qa', 
+                        war: warFile 
+                    } else { 
+                        error "WAR file not found. QA deployment failed." 
+                    } 
+                } 
+            } 
+        } 
+    } 
+    post { 
+        always { 
+            echo 'Cleaning up workspace...' 
+            deleteDir() 
+        } 
+        success { 
+            echo 'QA Pipeline completed successfully!' 
+        } 
+        failure { 
+            echo 'QA Pipeline failed. Check build logs for details.' 
+        } 
+    } 
+} 
